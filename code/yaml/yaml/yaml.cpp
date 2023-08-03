@@ -1,6 +1,3 @@
- // ConsoleApplication1.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 #include <iostream>
 #include <map>
@@ -57,7 +54,7 @@ void
 printMap(YAML::Node node, int n, const std::string &name)
 {
   printDirectChildren(node, name);
-   for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
     unsigned int t1 = it->first.Type();
     unsigned int t2 = it->second.Type();
 
@@ -69,7 +66,7 @@ printMap(YAML::Node node, int n, const std::string &name)
     }
 
     if (t2 == 2)
-      std::cout << "[" << name << "][" << it->first.as<std::string>() << "]: " << it->second.as<std::string>() << "\n"; 
+      std::cout << "[" << name << "][" << it->first.as<std::string>() << "]: " << it->second.as<std::string>() << "\n";
   }
 
 
@@ -77,8 +74,8 @@ printMap(YAML::Node node, int n, const std::string &name)
 
 int main()
 {
-  std::string filename = "C:\\Development\\SBML\\yamlspec\\t1.yaml";
-//  node = YAML::LoadFile(filename);
+  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\t1.yaml";
+  //  node = YAML::LoadFile(filename);
   YAML::Node node = YAML::LoadFile(filename);
 
   //std::cout << node.Type() << "\n";
@@ -102,5 +99,5 @@ int main()
   //}
 
   printMap(node, 0, "root");
-    return 0;
+  return 0;
 }
