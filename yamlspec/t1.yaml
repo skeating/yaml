@@ -1,0 +1,18 @@
+sarah:
+  partner:
+    none
+  children:
+    son:
+      jake
+      alex
+    daughter:
+      none
+pat:
+  partner:
+    liz
+  children:
+    son:
+      ben
+    daughter:
+      beth
+      niamh

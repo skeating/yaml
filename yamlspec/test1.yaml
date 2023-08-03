@@ -1,0 +1,20 @@
+neuroml:
+    definition: Some description...
+    allowed_parameters: 
+       id:
+           type: str
+           description: The id of the NeuroML 2 document
+       xmlns:
+           type: str
+           description: Schema for NeuroML 2, usually http://www.neuroml.org/schema/neuroml2
+    allowed_children:
+       description: ''
+       networks:
+           type: network
+           description: The networks present
+network:
+    definition: Some description...
+    allowed_parameters:
+       id:
+           type: str
+           description: The id of the network
