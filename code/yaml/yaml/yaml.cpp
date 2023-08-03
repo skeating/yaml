@@ -73,6 +73,28 @@ printMap(YAML::Node node, int n, const std::string &name)
 
 }
 
+std::string
+get(YAML::Node node, const std::string& name)
+{
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+  {
+    unsigned int t1 = it->first.Type();
+    unsigned int t2 = it->second.Type();
+   if (t2 == 2)
+    {
+      if (it->first.as<std::string>() == name)
+      {
+        return it->second.as<std::string>();
+      }
+    }
+    else
+    {
+      return get(it->second, name);
+    }
+
+  }
+}
+
 int main()
 {
   std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\t1.yaml";
@@ -82,6 +104,11 @@ int main()
   
   YAML::Node doc = YAML::Load(fin);
 
-  printMap(doc, 0, "root");
+  std::string name = "children";
+
+  std::string value = get(doc, name);
+  cout << "partner is: " << value << endl;
+
+//  printMap(doc, 0, "root");
   return 0;
 }
