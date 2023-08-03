@@ -74,22 +74,34 @@ printMap(YAML::Node node, int n, const std::string &name)
 }
 
 std::string
-get(YAML::Node node, const std::string& name)
+get(YAML::Node node, const std::string& name, const std::string& top, bool& correctBranch)
 {
   for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
   {
     unsigned int t1 = it->first.Type();
     unsigned int t2 = it->second.Type();
-   if (t2 == 2)
+    if (t1 == 2)
     {
-      if (it->first.as<std::string>() == name)
+      // we are at the top of a branch 
+      if (it->first.as<std::string>() == top)
       {
-        return it->second.as<std::string>();
+        correctBranch = true;
       }
     }
-    else
+
+    if (correctBranch)
     {
-      return get(it->second, name);
+      if (t2 == 2)
+      {
+        if (it->first.as<std::string>() == name)
+        {
+          return it->second.as<std::string>();
+        }
+      }
+      else
+      {
+        return get(it->second, name, top, correctBranch);
+      }
     }
 
   }
@@ -104,10 +116,15 @@ int main()
   
   YAML::Node doc = YAML::Load(fin);
 
-  std::string name = "children";
+  std::string top = "sarah";
 
-  std::string value = get(doc, name);
-  cout << "partner is: " << value << endl;
+  std::string name = "partner";
+
+  bool done = false;
+
+  std::string value = get(doc, name, top, (done));
+
+  cout << top << " : " << name << " is: " << value << endl;
 
 //  printMap(doc, 0, "root");
   return 0;
