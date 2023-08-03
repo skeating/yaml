@@ -55,18 +55,19 @@ printMap(YAML::Node node, int n, const std::string &name)
 {
   printDirectChildren(node, name);
   for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
+
     unsigned int t1 = it->first.Type();
     unsigned int t2 = it->second.Type();
 
     if (t1 == 2 && t2 == 4)
     {
-      YAML::Node map2 = it->second;
-      doMap(it);
       printMap(it->second, n + 1, it->first.as<std::string>());
     }
 
     if (t2 == 2)
+    {
       std::cout << "[" << name << "][" << it->first.as<std::string>() << "]: " << it->second.as<std::string>() << "\n";
+    }
   }
 
 
@@ -75,29 +76,12 @@ printMap(YAML::Node node, int n, const std::string &name)
 int main()
 {
   std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\t1.yaml";
-  //  node = YAML::LoadFile(filename);
-  YAML::Node node = YAML::LoadFile(filename);
+  std::ifstream fin;
+  fin.open(filename);
 
-  //std::cout << node.Type() << "\n";
+  
+  YAML::Node doc = YAML::Load(fin);
 
-  //switch (node.Type()) {
-  //case YAML::NodeType::Null: // ...
-  //    std::cout << "node is no " << node.size() << "\n";
-  //    break;
-  //  case YAML::NodeType::Scalar: // ...
-  //    std::cout << "node is scaler " << node.size() << "\n";
-  //    break;
-  //  case YAML::NodeType::Sequence: // ...LEN OD
-  //    std::cout << "node is sequence " << node.size() << "\n";
-  //    break;
-  //  case YAML::NodeType::Map: // ...
-  //    std::cout << "node is map " << node.size() << "\n";
-  //    break;
-  //  case YAML::NodeType::Undefined: // ...
-  //    std::cout << "node is is undefined " << node.size() << "\n";
-  //    break;
-  //}
-
-  printMap(node, 0, "root");
+  printMap(doc, 0, "root");
   return 0;
 }
