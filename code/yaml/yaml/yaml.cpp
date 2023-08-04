@@ -107,6 +107,17 @@ get(YAML::Node node, const std::string& name, const std::string& top, bool& corr
   }
 }
 
+std::vector<std::string>
+getTopLevelNames(YAML::Node node)
+{
+  std::vector<std::string> top_level;
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+  {
+    top_level.push_back(it->first.as<std::string>());
+  }
+  return top_level;
+}
+
 int main()
 {
   std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\t1.yaml";
@@ -125,6 +136,13 @@ int main()
   std::string value = get(doc, name, top, (done));
 
   cout << top << " : " << name << " is: " << value << endl;
+
+  std::vector<std::string> top_level = getTopLevelNames(doc);
+
+  for (unsigned int i = 0; i < top_level.size(); ++i)
+  {
+    cout << i << " : " << top_level.at(i) << endl;
+  }
 
 //  printMap(doc, 0, "root");
   return 0;
