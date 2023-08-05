@@ -137,6 +137,71 @@ getTopLevelNode(YAML::Node node, const std::string& top)
       }
     }
   }
+  return YAML::Node(YAML::NodeType::Undefined);
+}
+
+YAML::Node
+getChildNode(YAML::Node node, const std::string& name)
+{
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+  {
+    unsigned int t1 = it->first.Type();
+    if (t1 == 2)
+    {
+      // we are at the node 'name'
+      if (it->first.as<std::string>() == name)
+      {
+        return it->second;
+      }
+    }
+  }
+  return YAML::Node(YAML::NodeType::Undefined);
+}
+
+// GET THE NAMES OF THE IMMEDIATE CHILDREN
+// eg
+// population:
+//  definition: Some description...
+//  allowed_parameters :
+//    id :
+//      type : str
+//      description : The id of the population
+//    component :
+//      type: str
+//      description : the component to use in the population
+//     size :
+//       type: int
+//        description : the size of the population
+// 
+// getNamesImmediateChildren(node, "population", "allowed_parameters")
+// returns {"id", "component", "size"}
+
+std::vector<std::string>
+getNamesImmediateChildren(YAML::Node node, const std::string& top, const std::string& name)
+{
+  std::vector<std::string> values;
+
+  // get top node
+  YAML::Node top_node = getTopLevelNode(node, top);
+  if (top_node.IsDefined() != true)
+  {
+    return values;
+  }
+  YAML::Node name_node = getChildNode(top_node, name);
+  if (name_node.IsDefined() != true)
+  {
+    return values;
+  }
+
+  for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
+  {
+    unsigned int t1 = it->first.Type();
+    if (t1 == 2)
+    {
+      values.push_back(it->first.as<std::string>());
+    }
+  }
+  return values;
 }
 
 //std::vector<std::string>
@@ -154,16 +219,16 @@ getTopLevelNode(YAML::Node node, const std::string& top)
 
 int main()
 {
-  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\test1.yaml";
+  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\test.yaml";
   std::ifstream fin;
   fin.open(filename);
 
   
   YAML::Node doc = YAML::Load(fin);
 
-  std::string top = "neuroml";
+  std::string top = "population";
 
-  std::string name = "type";
+  std::string name = "allowed_parameters";
 
   bool done = false;
 
@@ -173,12 +238,12 @@ int main()
 
   //cout << "**********************\n\n";
 
-  //std::vector<std::string> top_level = getTopLevelNames(doc);
+  std::vector<std::string> top_level = getNamesImmediateChildren(doc, "Sarah", name);
 
-  //for (unsigned int i = 0; i < top_level.size(); ++i)
-  //{
-  //  cout << i << " : " << top_level.at(i) << endl;
-  //}
+  for (unsigned int i = 0; i < top_level.size(); ++i)
+  {
+    cout << i << " : " << top_level.at(i) << endl;
+  }
   
   cout << "**********************\n\n";
 //  printMap(doc, 0, "root");
@@ -186,8 +251,10 @@ int main()
 
 //  std::string name = "allowed_parameters";
 
-  YAML::Node tn = getTopLevelNode(doc, top);
+  //YAML::Node tn = getTopLevelNode(doc, top);
+  //YAML::Node cn = getChildNode(tn, "Sarah");
 
-  printMap(tn, 0, top);
+
+  //printMap(cn, 0, name);
   return 0;
 }
