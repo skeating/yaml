@@ -73,6 +73,8 @@ printMap(YAML::Node node, int n, const std::string &name)
 
 }
 
+// gets the value of 'name' for the top level element given
+// note this assumes there is only one value 'name' and that it is a string
 std::string
 get(YAML::Node node, const std::string& name, const std::string& top, bool& correctBranch)
 {
@@ -118,32 +120,74 @@ getTopLevelNames(YAML::Node node)
   return top_level;
 }
 
+// gets the node named top from the overall document
+
+YAML::Node
+getTopLevelNode(YAML::Node node, const std::string& top)
+{
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+  {
+    unsigned int t1 = it->first.Type();
+    if (t1 == 2)
+    {
+      // we are at the top of a branch 
+      if (it->first.as<std::string>() == top)
+      {
+        return it->second;
+      }
+    }
+  }
+}
+
+//std::vector<std::string>
+//getValuesFor(YAML::Node node, const std::string& name, const std::string& top)
+//{
+//  std::vector<std::string> values;
+//  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+//  {
+//    values.push_back(it->first.as<std::string>());
+//  }
+//  return values;
+//
+//}
+//
+
 int main()
 {
-  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\t1.yaml";
+  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\test1.yaml";
   std::ifstream fin;
   fin.open(filename);
 
   
   YAML::Node doc = YAML::Load(fin);
 
-  std::string top = "sarah";
+  std::string top = "neuroml";
 
-  std::string name = "partner";
+  std::string name = "type";
 
   bool done = false;
 
-  std::string value = get(doc, name, top, (done));
+  //std::string value = get(doc, name, top, (done));
 
-  cout << top << " : " << name << " is: " << value << endl;
+  //cout << top << " : " << name << " is: " << value << endl;
 
-  std::vector<std::string> top_level = getTopLevelNames(doc);
+  //cout << "**********************\n\n";
 
-  for (unsigned int i = 0; i < top_level.size(); ++i)
-  {
-    cout << i << " : " << top_level.at(i) << endl;
-  }
+  //std::vector<std::string> top_level = getTopLevelNames(doc);
 
+  //for (unsigned int i = 0; i < top_level.size(); ++i)
+  //{
+  //  cout << i << " : " << top_level.at(i) << endl;
+  //}
+  
+  cout << "**********************\n\n";
 //  printMap(doc, 0, "root");
+  cout << "**********************\n\n";
+
+//  std::string name = "allowed_parameters";
+
+  YAML::Node tn = getTopLevelNode(doc, top);
+
+  printMap(tn, 0, top);
   return 0;
 }
