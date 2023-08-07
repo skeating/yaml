@@ -17,9 +17,10 @@ const char* names_types[5] =
   "map"
 };
 
-typedef vector<pair<string, string>> attributes;
+typedef vector<pair<string, string>> id_type_pair;
+typedef map<string, pair<id_type_pair, id_type_pair>> my_classes;
 
-void printAtts(attributes att)
+void printAtts(id_type_pair att)
 {
   for (unsigned int i = 0; i < att.size(); ++i)
   {
@@ -27,27 +28,6 @@ void printAtts(attributes att)
   }
 }
 
-attributes
-getAttributes(YAML::Node node, const std::string &name)
-{
-  attributes values;
-  YAML::Node top_node = getChildNode(node, name);
-  if (top_node.IsDefined() != true)
-  {
-    return values;
-  }
-  YAML::Node name_node = getChildNode(top_node, "allowed_parameters");
-  if (name_node.IsDefined() != true)
-  {
-    return values;
-  }
-  for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
-  {
-
-  }
-
-
-}
 
 void
 printDirectChildren(YAML::Node node, const std::string &name)
@@ -153,8 +133,43 @@ getNamesImmediateChildren(YAML::Node node, const std::string& top, const std::st
   return values;
 }
 
+// assume this node is an allowed parameter with a type field
 std::string 
-getValue
+getType(YAML::Node node)
+{
+  return (getChildNode(node, "type")).as<std::string>();
+}
+
+void
+addid_type_pair(YAML::const_iterator it, id_type_pair& values)
+{ 
+  std::string name = it->first.as<std::string>(); 
+  std::string type = getType(it->second);
+  values.push_back(std::make_pair(name, type));
+}
+
+
+id_type_pair
+getid_type_pair(YAML::Node node, const std::string &name, const std::string &type)
+{
+  id_type_pair values;
+  YAML::Node top_node = getChildNode(node, name);
+  if (top_node.IsDefined() != true)
+  {
+    return values;
+  }
+  YAML::Node name_node = getChildNode(top_node, type);
+  if (name_node.IsDefined() != true)
+  {
+    return values;
+  }
+  for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
+  {
+    addid_type_pair(it, values);
+  }
+
+  return values;
+}
 
 
 int main()
@@ -166,35 +181,38 @@ int main()
   
   YAML::Node doc = YAML::Load(fin);
 
-  std::string top = "population";
+  std::string top = "network";
 
-  std::string name = "allowed_parameters";
+  std::string name = "allowed_children";
 
   bool done = false;
 
-  //std::string value = get(doc, name, top, (done));
+  id_type_pair a = getid_type_pair(doc, top, name);
+  printAtts(a);
 
-  //cout << top << " : " << name << " is: " << value << endl;
-
-  //cout << "**********************\n\n";
-
-  std::vector<std::string> top_level = getNamesImmediateChildren(doc, top, name);
-
-  for (unsigned int i = 0; i < top_level.size(); ++i)
-  {
-    cout << i << " : " << top_level.at(i) << endl;
-  }
-  
-  cout << "**********************\n\n";
-//  printMap(doc, 0, "root");
-  cout << "**********************\n\n";
-
+//  //std::string value = get(doc, name, top, (done));
+//
+//  //cout << top << " : " << name << " is: " << value << endl;
+//
+//  //cout << "**********************\n\n";
+//
+//  std::vector<std::string> top_level = getNamesImmediateChildren(doc, top, name);
+//
+//  for (unsigned int i = 0; i < top_level.size(); ++i)
+//  {
+//    cout << i << " : " << top_level.at(i) << endl;
+//  }
+//  
+//  cout << "**********************\n\n";
+////  printMap(doc, 0, "root");
+//  cout << "**********************\n\n";
+//
 //  std::string name = "allowed_parameters";
-
-  YAML::Node tn = getChildNode(doc, top);
-  YAML::Node cn = getChildNode(tn, name);
-
-
-  printMap(cn, 0, name);
+//
+//  YAML::Node tn = getChildNode(doc, top);
+//  YAML::Node cn = getChildNode(tn, name);
+//
+//
+//  printMap(cn, 0, name);
   return 0;
 }
