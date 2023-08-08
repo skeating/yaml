@@ -17,10 +17,9 @@ const char* names_types[5] =
   "map"
 };
 
-typedef vector<pair<string, string>> id_type_pair;
-typedef map<string, pair<id_type_pair, id_type_pair>> my_classes;
+typedef vector<pair<string, string>> idTypePairs;
 
-void printAtts(id_type_pair att)
+void printAtts(idTypePairs att)
 {
   for (unsigned int i = 0; i < att.size(); ++i)
   {
@@ -141,7 +140,7 @@ getType(YAML::Node node)
 }
 
 void
-addid_type_pair(YAML::const_iterator it, id_type_pair& values)
+addIdTypePairs(YAML::const_iterator it, idTypePairs& values)
 { 
   std::string name = it->first.as<std::string>(); 
   std::string type = getType(it->second);
@@ -149,10 +148,10 @@ addid_type_pair(YAML::const_iterator it, id_type_pair& values)
 }
 
 
-id_type_pair
-getid_type_pair(YAML::Node node, const std::string &name, const std::string &type)
+idTypePairs
+getIdTypePairs(YAML::Node node, const std::string &name, const std::string &type)
 {
-  id_type_pair values;
+  idTypePairs values;
   YAML::Node top_node = getChildNode(node, name);
   if (top_node.IsDefined() != true)
   {
@@ -165,54 +164,175 @@ getid_type_pair(YAML::Node node, const std::string &name, const std::string &typ
   }
   for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
   {
-    addid_type_pair(it, values);
+    addIdTypePairs(it, values);
   }
 
   return values;
 }
 
 
-int main()
+//int main()
+//{
+//  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\test.yaml";
+//  std::ifstream fin;
+//  fin.open(filename);
+//
+//  
+//  YAML::Node doc = YAML::Load(fin);
+//
+//  std::string top = "network";
+//
+//  std::string name = "allowed_children";
+//
+//  bool done = false;
+//
+//  idTypePairs a = getidTypePairs(doc, top, name);
+//  printAtts(a);
+//
+////  //std::string value = get(doc, name, top, (done));
+////
+////  //cout << top << " : " << name << " is: " << value << endl;
+////
+////  //cout << "**********************\n\n";
+////
+////  std::vector<std::string> top_level = getNamesImmediateChildren(doc, top, name);
+////
+////  for (unsigned int i = 0; i < top_level.size(); ++i)
+////  {
+////    cout << i << " : " << top_level.at(i) << endl;
+////  }
+////  
+////  cout << "**********************\n\n";
+//////  printMap(doc, 0, "root");
+////  cout << "**********************\n\n";
+////
+////  std::string name = "allowed_parameters";
+////
+////  YAML::Node tn = getChildNode(doc, top);
+////  YAML::Node cn = getChildNode(tn, name);
+////
+////
+////  printMap(cn, 0, name);
+//  return 0;
+//}
+class YamlClass
+{
+public:
+  YamlClass() :
+    mName(""),
+    mAttributes(NULL),
+    mChildren(NULL)
+  {};
+
+  YamlClass(const std::string name) :
+    mName(name),
+    mAttributes(NULL),
+    mChildren(NULL)
+  {
+  };
+
+  void print() {
+    cout << "class name: " << mName << endl;
+    cout << "attributes: " << endl;
+    printAtts(mAttributes);
+    cout << "children:" << endl;
+    printAtts(mChildren);
+  };
+
+  void addAttributes(YAML::Node node)
+  {
+    YAML::Node name_node = getChildNode(node, "allowed_parameters");
+    for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
+    {
+      addIdTypePairs(it, mAttributes);
+    }
+
+  };
+  void addChildren(YAML::Node node)
+  {
+    YAML::Node name_node = getChildNode(node, "allowed_children");
+    for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
+    {
+      addIdTypePairs(it, mChildren);
+    }
+
+  };
+
+
+  void setAttributes(idTypePairs pairs)
+  {
+    mAttributes = pairs;
+  };
+
+  void setChildren(idTypePairs pairs)
+  {
+    mChildren = pairs;
+  };
+
+private:
+  const std::string mName;
+  idTypePairs mAttributes;
+  idTypePairs mChildren;
+
+};
+
+class YamlSpec
+{
+public:
+  YamlSpec(const std::string& filename) :
+    mFilename(filename),
+    mTopLevel(NULL),
+    mChildClasses(NULL)
+  {
+  };
+
+  void parse() {
+    std::ifstream fin;
+    fin.open(mFilename);
+    YAML::Node doc = YAML::Load(fin);
+    bool first = true;
+    for (YAML::const_iterator it = doc.begin(); it != doc.end(); ++it)
+    {
+      if (first)
+      {
+        mTopLevel = new YamlClass(it->first.as<string>());
+        mTopLevel->addAttributes(it->second);
+        mTopLevel->addChildren(it->second);
+        first = false;
+      }
+      else
+      {
+        YamlClass yc = YamlClass(it->first.as<string>());
+        yc.addAttributes(it->second);
+        yc.addChildren(it->second);
+        mChildClasses.push_back(yc);
+      }
+    }
+  };
+
+  void print() {
+    mTopLevel->print();
+    cout << "*******\n";
+    for (unsigned int n = 0; n < mChildClasses.size(); ++n)
+    {
+      mChildClasses.at(n).print();
+      cout << "*******\n";
+    }
+  };
+private:
+  const std::string& mFilename;
+
+  std::vector<YamlClass> mChildClasses;
+  YamlClass* mTopLevel;
+};
+
+void
+main()
 {
   std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\test.yaml";
-  std::ifstream fin;
-  fin.open(filename);
-
-  
-  YAML::Node doc = YAML::Load(fin);
-
-  std::string top = "network";
-
-  std::string name = "allowed_children";
-
-  bool done = false;
-
-  id_type_pair a = getid_type_pair(doc, top, name);
-  printAtts(a);
-
-//  //std::string value = get(doc, name, top, (done));
-//
-//  //cout << top << " : " << name << " is: " << value << endl;
-//
-//  //cout << "**********************\n\n";
-//
-//  std::vector<std::string> top_level = getNamesImmediateChildren(doc, top, name);
-//
-//  for (unsigned int i = 0; i < top_level.size(); ++i)
-//  {
-//    cout << i << " : " << top_level.at(i) << endl;
-//  }
-//  
-//  cout << "**********************\n\n";
-////  printMap(doc, 0, "root");
-//  cout << "**********************\n\n";
-//
-//  std::string name = "allowed_parameters";
-//
-//  YAML::Node tn = getChildNode(doc, top);
-//  YAML::Node cn = getChildNode(tn, name);
-//
-//
-//  printMap(cn, 0, name);
-  return 0;
+  YamlSpec spec = YamlSpec(filename);
+  spec.parse();
+  spec.print();
 }
+
+
