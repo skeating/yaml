@@ -2,6 +2,68 @@
 #include "yamlspec.h"
 #include <fstream>
 
+/***************************************************************
+ *         YamlUtils class
+***************************************************************/
+
+std::string&
+YamlUtils::getTypeFromNode(YAML::Node node)
+{
+  return (getChildNode(node, "type")).as<std::string>();
+}
+
+std::string& 
+YamlUtils::getNameValue(idTypePairs pairs, unsigned int n)
+{
+  return pairs.at(n).first;
+}
+
+std::string&
+YamlUtils::getTypeValue(idTypePairs pairs, unsigned int n)
+{
+  return pairs.at(n).second;
+}
+
+void
+YamlUtils::addIdTypePairs(YAML::const_iterator it, idTypePairs& values)
+{
+  std::string name = it->first.as<std::string>();
+  std::string type = getTypeFromNode(it->second);
+  values.push_back(std::make_pair(name, type));
+}
+
+YAML::Node
+YamlUtils::getChildNode(YAML::Node node, const std::string& name)
+{
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+  {
+    unsigned int t1 = it->first.Type();
+    if (t1 == 2)
+    {
+      cout << it->first.as<std::string>() << " matches " << name << endl;
+      // we are at the node 'name'
+      if (it->first.as<std::string>() == name)
+      {
+        return it->second;
+      }
+    }
+  }
+  return YAML::Node(YAML::NodeType::Undefined);
+}
+
+void
+YamlUtils::printAtts(idTypePairs att)
+{
+  for (unsigned int i = 0; i < att.size(); ++i)
+  {
+    cout << i << " : name: " << att.at(i).first << " type: " << att.at(i).second << endl;
+  }
+}
+
+/***************************************************************
+*         YamlClass class
+***************************************************************/
+
 YamlClass::YamlClass() :
   mName(""),
   mAttributes(NULL),
@@ -9,12 +71,34 @@ YamlClass::YamlClass() :
 {
 }
 
-YamlClass::YamlClass(const std::string name) :
+YamlClass::YamlClass(const std::string& name) :
   mName(name),
   mAttributes(NULL),
   mChildren(NULL)
 {
 }
+
+YamlClass::YamlClass(const YamlClass& rhs)
+{
+  mName = rhs.mName;
+  mAttributes = rhs.mAttributes;
+  mChildren = rhs.mChildren;
+
+}
+
+YamlClass & 
+YamlClass::operator=(const YamlClass& rhs)
+{
+  if (&rhs == this)
+    return *this;
+
+  mName = rhs.mName;
+  mAttributes = rhs.mAttributes;
+  mChildren = rhs.mChildren;
+
+  return *this;
+}
+
 
 void 
 YamlClass::print() 
@@ -47,12 +131,54 @@ YamlClass::addChildren(YAML::Node node)
 
 }
 
+const std::string&
+YamlClass::getName()
+{
+  return mName;
+}
+
+const std::string&
+YamlClass::getAttributeName(unsigned int n)
+{
+  return YamlUtils::getNameValue(mAttributes, n);
+}
+
+const std::string&
+YamlClass::getAttributeType(unsigned int n)
+{
+  return YamlUtils::getTypeValue(mAttributes, n);
+}
+
+const std::string&
+YamlClass::getChildClassName(unsigned int n)
+{
+  return YamlUtils::getNameValue(mChildren, n);
+}
+
+const std::string&
+YamlClass::getChildClassType(unsigned int n)
+{
+  return YamlUtils::getTypeValue(mChildren, n);
+}
+
+
+/***************************************************************
+*         YamlSpec class
+***************************************************************/
+//YamlSpec::YamlSpec() :
+//  mTopLevel(NULL),
+//  mChildClasses(NULL)
+//{
+//  mFilename = "C:\\Development\\SBML\\test.yaml";
+//}
+
+
 
 YamlSpec::YamlSpec(const std::string& filename) :
-  mFilename(filename),
   mTopLevel(NULL),
   mChildClasses(NULL)
 {
+  mFilename = filename;
 }
 
 void 
@@ -66,6 +192,32 @@ YamlSpec::parse()
   {
     if (first)
     {
+      mTopLevel =  new YamlClass(it->first.as<string>());
+      mTopLevel->addAttributes(it->second);
+      mTopLevel->addChildren(it->second);
+      first = false;
+    }
+    else
+    {
+      YamlClass *yc = new YamlClass(it->first.as<string>());
+      yc->addAttributes(it->second);
+      yc->addChildren(it->second);
+      mChildClasses.push_back(yc);
+    }
+  }
+}
+
+void
+YamlSpec::parse(const std::string& filename)
+{
+  std::ifstream fin;
+  fin.open(filename);
+  YAML::Node doc = YAML::Load(fin);
+  bool first = true;
+  for (YAML::const_iterator it = doc.begin(); it != doc.end(); ++it)
+  {
+    if (first)
+    {
       mTopLevel = new YamlClass(it->first.as<string>());
       mTopLevel->addAttributes(it->second);
       mTopLevel->addChildren(it->second);
@@ -73,9 +225,9 @@ YamlSpec::parse()
     }
     else
     {
-      YamlClass yc = YamlClass(it->first.as<string>());
-      yc.addAttributes(it->second);
-      yc.addChildren(it->second);
+      YamlClass *yc = new YamlClass(it->first.as<string>());
+      yc->addAttributes(it->second);
+      yc->addChildren(it->second);
       mChildClasses.push_back(yc);
     }
   }
@@ -88,51 +240,14 @@ YamlSpec::print()
   cout << "*******\n";
   for (unsigned int n = 0; n < mChildClasses.size(); ++n)
   {
-    mChildClasses.at(n).print();
+    mChildClasses.at(n)->print();
     cout << "*******\n";
   }
 }
 
-std::string
-YamlUtils::getType(YAML::Node node)
+YamlClass *
+YamlSpec::getTopLevel()
 {
-  return (getChildNode(node, "type")).as<std::string>();
-}
-
-void
-YamlUtils::addIdTypePairs(YAML::const_iterator it, idTypePairs& values)
-{
-  std::string name = it->first.as<std::string>();
-  std::string type = getType(it->second);
-  values.push_back(std::make_pair(name, type));
-}
-
-
-
-YAML::Node
-YamlUtils::getChildNode(YAML::Node node, const std::string& name)
-{
-  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
-  {
-    unsigned int t1 = it->first.Type();
-    if (t1 == 2)
-    {
-      // we are at the node 'name'
-      if (it->first.as<std::string>() == name)
-      {
-        return it->second;
-      }
-    }
-  }
-  return YAML::Node(YAML::NodeType::Undefined);
-}
-
-void 
-YamlUtils::printAtts(idTypePairs att)
-{
-  for (unsigned int i = 0; i < att.size(); ++i)
-  {
-    cout << i << " : name: " << att.at(i).first << " type: " << att.at(i).second << endl;
-  }
+ return mTopLevel;
 }
 
