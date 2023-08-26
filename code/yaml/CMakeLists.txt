@@ -85,7 +85,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(CTest) # We include CTest which is part of CMake
 #!include(Catch)
-
+enable_testing()
 add_subdirectory(yaml)
 
 # We check if this is the main file
@@ -94,5 +94,3 @@ add_subdirectory(yaml)
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     add_subdirectory(yaml_test)
 endif ()
-
-enable_testing()

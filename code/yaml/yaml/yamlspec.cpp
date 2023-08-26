@@ -2,14 +2,53 @@
 #include "yamlspec.h"
 #include <fstream>
 
+void
+printDirectChildren(YAML::Node node, const std::string &name)
+{
+  std::cout << "node " << name << " is map size " << node.size() << "\n";
+  unsigned int s = 0;
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+  {
+    s++;
+    std::cout << "[" << name << "][" << s << "]: " << it->first.as<std::string>() << "\n";
+  }
+}
+
+void
+printMap(YAML::Node node, int n, const std::string &name)
+{
+  printDirectChildren(node, name);
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
+
+    unsigned int t1 = it->first.Type();
+    unsigned int t2 = it->second.Type();
+
+    if (t1 == 2 && t2 == 4)
+    {
+      printMap(it->second, n + 1, it->first.as<std::string>());
+    }
+
+    if (t2 == 2)
+    {
+      std::cout << "[" << name << "][" << it->first.as<std::string>() << "]: " << it->second.as<std::string>() << "\n";
+    }
+  }
+}
+
 /***************************************************************
  *         YamlUtils class
 ***************************************************************/
 
-std::string&
+std::string
 YamlUtils::getTypeFromNode(YAML::Node node)
 {
-  return (getChildNode(node, "type")).as<std::string>();
+  YAML::Node type_node = getChildNode(node, "type");
+  if (type_node.Type() != 1)
+  {
+    return "";
+  }
+  std::string type = type_node.as<std::string>();
+  return type;
 }
 
 std::string& 
@@ -28,6 +67,7 @@ void
 YamlUtils::addIdTypePairs(YAML::const_iterator it, idTypePairs& values)
 {
   std::string name = it->first.as<std::string>();
+//  printMap(it->second, 0, "tgoever");
   std::string type = getTypeFromNode(it->second);
   values.push_back(std::make_pair(name, type));
 }
@@ -35,12 +75,13 @@ YamlUtils::addIdTypePairs(YAML::const_iterator it, idTypePairs& values)
 YAML::Node
 YamlUtils::getChildNode(YAML::Node node, const std::string& name)
 {
+//  printMap(node, 0, "*.node");
   for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
   {
     unsigned int t1 = it->first.Type();
     if (t1 == 2)
     {
-      cout << it->first.as<std::string>() << " matches " << name << endl;
+//      cout << it->first.as<std::string>() << " matches " << name << endl;
       // we are at the node 'name'
       if (it->first.as<std::string>() == name)
       {
@@ -59,6 +100,8 @@ YamlUtils::printAtts(idTypePairs att)
     cout << i << " : name: " << att.at(i).first << " type: " << att.at(i).second << endl;
   }
 }
+
+
 
 /***************************************************************
 *         YamlClass class
@@ -114,6 +157,7 @@ void
 YamlClass::addAttributes(YAML::Node node)
 {
   YAML::Node name_node = YamlUtils::getChildNode(node, "allowed_parameters");
+  printMap(name_node, 0, "param");
   for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
   {
     YamlUtils::addIdTypePairs(it, mAttributes);
@@ -124,11 +168,11 @@ void
 YamlClass::addChildren(YAML::Node node)
 {
   YAML::Node name_node = YamlUtils::getChildNode(node, "allowed_children");
+  printMap(name_node, 0, "children");
   for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
   {
     YamlUtils::addIdTypePairs(it, mChildren);
   }
-
 }
 
 const std::string&
@@ -165,16 +209,16 @@ YamlClass::getChildClassType(unsigned int n)
 /***************************************************************
 *         YamlSpec class
 ***************************************************************/
-//YamlSpec::YamlSpec() :
-//  mTopLevel(NULL),
-//  mChildClasses(NULL)
-//{
-//  mFilename = "C:\\Development\\SBML\\test.yaml";
-//}
+YamlSpec::YamlSpec() :
+  mTopLevel(NULL),
+  mChildClasses(NULL)
+{
+  mFilename = "C:\\Development\\SBML\\test.yaml";
+}
 
 
 
-YamlSpec::YamlSpec(const std::string& filename) :
+YamlSpec::YamlSpec(std::string filename) :
   mTopLevel(NULL),
   mChildClasses(NULL)
 {
@@ -187,6 +231,7 @@ YamlSpec::parse()
   std::ifstream fin;
   fin.open(mFilename);
   YAML::Node doc = YAML::Load(fin);
+  //printMap(doc, 0, "doc");
   bool first = true;
   for (YAML::const_iterator it = doc.begin(); it != doc.end(); ++it)
   {
@@ -250,4 +295,31 @@ YamlSpec::getTopLevel()
 {
  return mTopLevel;
 }
+
+std::vector<YamlClass*> 
+YamlSpec::getChildClasses()
+{
+  return mChildClasses;
+}
+
+unsigned int
+YamlSpec::getNumChildClasses()
+{
+  return mChildClasses.size();
+}
+
+YamlClass*
+YamlSpec::getChildClass(unsigned int n)
+{
+  return mChildClasses.at(n);
+}
+
+std::string 
+YamlSpec::getFilename()
+{
+  return mFilename;
+}
+
+
+
 

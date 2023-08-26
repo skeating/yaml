@@ -9,6 +9,9 @@ using namespace std;
 
 typedef vector<pair<string, string>> idTypePairs;
 
+void printDirectChildren(YAML::Node node, const std::string &name);
+void printMap(YAML::Node node, int n, const std::string &name);
+
 // utility class
 class YamlUtils
 {
@@ -18,11 +21,10 @@ public:
   static YAML::Node getChildNode(YAML::Node node, const std::string& name);
 
   // takes a pointer to a pair of nodes, where first is a name and second is a map
-  // and adds an id and a type to the vector of idTypePairs
   static void addIdTypePairs(YAML::const_iterator it, idTypePairs& values);
 
   // gets the value of the type node from a map
-  static std::string& getTypeFromNode(YAML::Node node);
+  static std::string getTypeFromNode(YAML::Node node);
 
   // gets the name value from the nth idTypePairs
   static std::string& getNameValue(idTypePairs pairs, unsigned int n);
@@ -83,9 +85,10 @@ private:
 class YamlSpec
 {
 public:
+  YamlSpec();
   // class to parse a filename
   // and contain details of the whole specification
-  YamlSpec(const std::string& filename);
+  YamlSpec(std::string filename);
 
   // parse the specification into a YamlClass instance representing the top level
   // and a vector of YamlClass instances representing the other deviser classes
@@ -98,6 +101,17 @@ public:
 
   // return a pointer to the top level class
   YamlClass* getTopLevel();
+
+  // return the vector of child classes
+  std::vector<YamlClass*> getChildClasses();
+
+  // return the number of child classes
+  unsigned int getNumChildClasses();
+
+  // return the nth child class
+  YamlClass* getChildClass(unsigned int n);
+
+  std::string getFilename();
 
 private:
   std::string mFilename;
