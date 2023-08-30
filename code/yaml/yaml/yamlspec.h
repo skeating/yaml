@@ -7,7 +7,8 @@
 
 using namespace std;
 
-typedef vector<pair<string, string>> idTypePairs;
+typedef pair<string, string> idPair;
+typedef vector<idPair> idTypePairs;
 
 void printDirectChildren(YAML::Node node, const std::string &name);
 void printMap(YAML::Node node, int n, const std::string &name);
@@ -75,6 +76,26 @@ public:
 
   // get the type of the nth child class
   const std::string& getChildClassType(unsigned int n);
+
+  // return the set off type pairs
+  idTypePairs getChildClasses();
+
+  // return the number of child classes
+  unsigned int getNumChildClasses();
+
+  // return the nth child class
+  idPair getChildClass(unsigned int n);
+
+  // return the set off type pairs
+  idTypePairs getAttributes();
+
+  // return the number of child classes
+  unsigned int getNumAttributes();
+
+  // return the nth child class
+  idPair getAttribute(unsigned int n);
+
+
 
 private:
   std::string mName;

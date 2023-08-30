@@ -42,8 +42,8 @@ printMap(YAML::Node node, int n, const std::string &name)
 std::string
 YamlUtils::getTypeFromNode(YAML::Node node)
 {
-  YAML::Node type_node = getChildNode(node, "type");
-  if (type_node.Type() != 1)
+  YAML::Node type_node = YamlUtils::getChildNode(node, "type");
+  if (type_node.Type() != 2)
   {
     return "";
   }
@@ -68,7 +68,7 @@ YamlUtils::addIdTypePairs(YAML::const_iterator it, idTypePairs& values)
 {
   std::string name = it->first.as<std::string>();
 //  printMap(it->second, 0, "tgoever");
-  std::string type = getTypeFromNode(it->second);
+  std::string type = YamlUtils::getTypeFromNode(it->second);
   values.push_back(std::make_pair(name, type));
 }
 
@@ -157,7 +157,7 @@ void
 YamlClass::addAttributes(YAML::Node node)
 {
   YAML::Node name_node = YamlUtils::getChildNode(node, "allowed_parameters");
-  printMap(name_node, 0, "param");
+//  printMap(name_node, 0, "param");
   for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
   {
     YamlUtils::addIdTypePairs(it, mAttributes);
@@ -168,7 +168,7 @@ void
 YamlClass::addChildren(YAML::Node node)
 {
   YAML::Node name_node = YamlUtils::getChildNode(node, "allowed_children");
-  printMap(name_node, 0, "children");
+//  printMap(name_node, 0, "children");
   for (YAML::const_iterator it = name_node.begin(); it != name_node.end(); ++it)
   {
     YamlUtils::addIdTypePairs(it, mChildren);
@@ -203,6 +203,44 @@ const std::string&
 YamlClass::getChildClassType(unsigned int n)
 {
   return YamlUtils::getTypeValue(mChildren, n);
+}
+
+idTypePairs 
+YamlClass::getChildClasses()
+{
+  return mChildren;
+}
+
+
+unsigned int 
+YamlClass::getNumChildClasses()
+{
+  return mChildren.size();
+}
+
+idPair 
+YamlClass::getChildClass(unsigned int n)
+{
+  return mChildren.at(n);
+}
+
+idTypePairs
+YamlClass::getAttributes()
+{
+  return mAttributes;
+}
+
+
+unsigned int
+YamlClass::getNumAttributes()
+{
+  return mAttributes.size();
+}
+
+idPair
+YamlClass::getAttribute(unsigned int n)
+{
+  return mAttributes.at(n);
 }
 
 

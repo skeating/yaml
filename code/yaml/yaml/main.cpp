@@ -61,6 +61,39 @@ int test_parsing()
   return fails;
 }
 
+int test_top_level_attributes()
+{
+  int fails = 0;
+  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\test1.yaml";
+  YamlSpec *spec = new YamlSpec(filename);
+  spec->parse();
+  YamlClass *top = spec->getTopLevel();
+  if(top == NULL) fails += 1;
+  if (top->getNumAttributes() != 2) fails += 1;
+  idPair att1 = make_pair("id", "str");
+  if ((top->getAttribute(0)).first != att1.first) fails += 1;
+  if ((top->getAttribute(0)).second != att1.second) fails += 1;
+  idPair att2 = make_pair("xmlns", "str");
+  if ((top->getAttribute(1)).first != att2.first) fails += 1;
+  if ((top->getAttribute(1)).second != att2.second) fails += 1;
+  return fails;
+}
+
+int test_top_level_children()
+{
+  int fails = 0;
+  std::string filename = "C:\\Development\\COMBINE\\yaml\\yamlspec\\test1.yaml";
+  YamlSpec *spec = new YamlSpec(filename);
+  spec->parse();
+  YamlClass *top = spec->getTopLevel();
+  if (top == NULL) fails += 1;
+  if (top->getNumChildClasses() != 1) fails += 1;
+  idPair att1 = make_pair("networks", "network");
+  if ((top->getChildClass(0)).first != att1.first) fails += 1;
+  if ((top->getChildClass(0)).second != att1.second) fails += 1;
+  return fails;
+}
+
 
 int main() {
   int result = 0;
@@ -74,7 +107,14 @@ int main() {
   number_of_tests += 5;
   result += test_parsing();  
 
-  std::cout << "Tests finished!" << std::endl;
+  number_of_tests += 6;
+  result += test_top_level_attributes();
+
+  number_of_tests += 4;
+  result += test_top_level_children();
+
+
+  std::cout << number_of_tests << " Tests finished!" << std::endl;
   std::cout << result << " tests failed!" << std::endl;
 
 
